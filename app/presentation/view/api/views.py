@@ -10,16 +10,12 @@ from functools import wraps
 def key_required(func):
     @wraps(func)
     def decorator(*args, **kwargs):
-        if request.values:
-            api_key = request.values["api_key"]
-        else:
-            return json.dumps({"status": False, "data": f'Please provide a key'})
-        # Check if API key is correct and valid
-        if request.method == "POST" and api_key == flask_app.config['API_KEY']:
-            return func(*args, **kwargs)
-        else:
-            return json.dumps({"status": False, "data": f'Key not valid'})
-
+        try:
+            if request.headers.get('x-api-key') == flask_app.config['API_KEY']:
+                return func(*args, **kwargs)
+        except:
+            pass
+        return json.dumps({"status": False, "data": f'Key not valid'})
     return decorator
 
 

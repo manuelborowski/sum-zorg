@@ -31,6 +31,8 @@ class StudenIntake(db.Model, SerializerMixin):
     s_officieel_adres_bij = db.Column(db.String(256), default='')
     s_officieel_adres_andere = db.Column(db.String(256), default='')
 
+    klas = db.Column(db.String(256), default='')
+
     s_roepnaam = db.Column(db.String(256), default='')
     s_geboorteplaats = db.Column(db.String(256), default='')
     s_geboorteland = db.Column(db.String(256), default='')
@@ -47,8 +49,6 @@ class StudenIntake(db.Model, SerializerMixin):
     i_last_name = db.Column(db.String(256), default='')
     i_code = db.Column(db.String(256), default='')
     i_intake_date = db.Column(db.DateTime())
-
-
 
     studierichting = db.Column(db.String(256), default='')
     clil_keuze = db.Column(db.String(256), default='')

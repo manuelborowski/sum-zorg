@@ -141,6 +141,8 @@ flask_app.config.from_pyfile('config.py')
 # V0.108: generate new student code when a student is added in care or intake
 # V0.109: small bugfix
 # V0.110: introduced right-click floating menu (from school-data-hub)
+# V0.111: added propery klas to intake_student.  Reworked API key
+
 
 #TODO: add sequence numbers when on the waiting list.  Add them on the confirmation document?
 #TODO: add statistic counters, e.g. number per field-of-study, ...
@@ -158,7 +160,7 @@ flask_app.config.from_pyfile('config.py')
 
 @flask_app.context_processor
 def inject_defaults():
-    return dict(version='@ 2022 MB. V0.110', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
+    return dict(version='@ 2022 MB. V0.111', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
 
 
 #  enable logging
