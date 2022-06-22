@@ -14,7 +14,7 @@
     {{ JSGlue.include() }}
     <style>
         .navbar {
-           position: fixed;
+            position: fixed;
             width: 100%;
             top: 0;
             z-index: 9;
@@ -27,6 +27,11 @@
         .nav-buttons button {
             margin-left: 1rem;
         }
+        body {
+            margin-bottom: 8px;
+            margin-top: 8px;
+        }
+
     </style>
 </head>
 
@@ -57,7 +62,7 @@
                     </li>
                 {% endif %}
                 {% if table_config and table_config.buttons %}
-                        <div class="nav-buttons">
+                    <div class="nav-buttons">
                         {% if 'view' in table_config.buttons %}
                             <button class="btn btn-warning" type="button" onclick="button_pushed('view')">Wijzig</button>
                         {% endif %}
@@ -76,23 +81,19 @@
                     </div>
                 {% endif %}
                 {% if data and data.buttons %}
-                        <div class="nav-buttons">
-                        {% if 'save' in data.buttons %}
-                            <button class="btn btn-default" type="button" onclick="button_pushed('save')">Opslaan</button>
-                        {% endif %}
-                        {% if 'cancel' in data.buttons %}
-                            <button class="btn btn-warning" type="button" onclick="button_pushed('cancel')">Annuleren</button>
-                        {% endif %}
-                        {% if 'clear' in data.buttons %}
-                            <button class="btn btn-warning" type="button" onclick="button_pushed('clear')">Velden wissen</button>
-                        {% endif %}
+                    <div class="nav-buttons">
+                        {% for btn in data.buttons %}
+                            <button class="btn btn-{{ btn[2] }}" type="button" onclick="button_pushed('{{ btn[0] }}')">{{ btn[1] }}</button>
+                        {% endfor %}
                     </div>
                 {% endif %}
             {% endif %}
             </ul>
         </div>
     </div>
-    <a href="{{ url_for('auth.logout') }}"><button class="btn btn-success navbar-btn">Logout</button></a>&nbsp;&nbsp;
+    <a href="{{ url_for('auth.logout') }}">
+        <button class="btn btn-success navbar-btn">Logout</button>
+    </a>&nbsp;&nbsp;
     <a class="navbar-brand">Hi, {{ current_user.username }}!</a>
 </nav>
 {% block body %}

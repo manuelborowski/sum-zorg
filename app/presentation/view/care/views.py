@@ -2,7 +2,7 @@ from . import care
 from app import log, supervisor_required, flask_app
 from flask import redirect, url_for, request, render_template
 from flask_login import login_required, current_user
-from app.presentation.view import base_multiple_items
+from app.presentation.view import datatables
 from app.presentation.layout.utils import flash_plus
 from app.application import socketio as msocketio, settings as msettings
 import sys, json
@@ -14,8 +14,8 @@ import app.application
 @login_required
 def show():
     # start = datetime.datetime.now()
-    base_multiple_items.update(table_configuration)
-    ret = base_multiple_items.show(table_configuration)
+    datatables.update(table_configuration)
+    ret = datatables.show(table_configuration)
     # print('care.show', datetime.datetime.now() - start)
     return ret
 
@@ -24,8 +24,8 @@ def show():
 @login_required
 def table_ajax():
     # start = datetime.datetime.now()
-    base_multiple_items.update(table_configuration)
-    ret =  base_multiple_items.ajax(table_configuration)
+    datatables.update(table_configuration)
+    ret = datatables.ajax(table_configuration)
     # print('care.table_ajax', datetime.datetime.now() - start)
     return ret
 
@@ -42,51 +42,10 @@ def table_action(action, ids=None):
         return item_edit(ids)
     if action == 'add':
         return item_add()
-    if action == 'delete':
-        return item_delete(ids)
     return redirect(url_for('care.show'))
 
 
-@care.route('/care/get_form', methods=['POST', 'GET'])
-@login_required
-def get_form():
-    try:
-        common = {
-            'post_data_endpoint': 'api.care_update',
-            'submit_endpoint': 'care.show',
-            'cancel_endpoint': 'care.show',
-            'api_key': flask_app.config['API_KEY']
-        }
-        if request.values['form'] == 'pdf':
-            data = app.application.student_care.prepare_edit_form(request.values['extra'], read_only=True, pdf=True)
-            data.update(common)
-        elif current_user.is_at_least_supervisor:
-            if request.values['form'] == 'edit':
-                data = app.application.student_care.prepare_edit_form(request.values['extra'])
-                data.update(common)
-            elif request.values['form'] == 'add':
-                data = app.application.student_care.prepare_add_form()
-                data.update(common)
-                data['post_data_endpoint'] ='api.care_add'
-            else:
-                return {"status": False, "data": f"get_form: niet gekende form: {request.values['form']}"}
-        else:
-            return {"status": False, "data": f"U hebt geen toegang tot deze url"}
-        return {"status": True, "data": data}
-    except Exception as e:
-        log.error(f"Error in get_form: {e}")
-        return {"status": False, "data": f"get_form: {e}"}
-
-
-@supervisor_required
-def item_delete(ids=None):
-    try:
-        if ids == None:
-            ids = request.form.getlist('chbx')
-        app.application.student_care.delete_cares(ids)
-    except Exception as e:
-        log.error(f'could not delete care {request.args}: {e}')
-    return redirect(url_for('care.show'))
+item_common = {'post_data_endpoint': 'api.care_update', 'submit_endpoint': 'care.show', 'cancel_endpoint': 'care.show', 'api_key': flask_app.config['API_KEY']}
 
 
 @supervisor_required
@@ -100,10 +59,10 @@ def item_edit(ids=None):
                 return redirect(url_for('care.show'))
         else:
             id = ids[0]
-        return render_template('render_formio.html', data={"form": "edit",
-                                                           "get_form_endpoint": "care.get_form",
-                                                           "extra": id,
-                                                           "buttons": ["save", "cancel"]})
+        data = app.application.student_care.prepare_edit_form(id)
+        data.update(item_common)
+        data.update({"buttons": [("save", "Bewaar", "default"), ("cancel", "Annuleer", "warning")]})
+        return render_template('formio.html', data=data)
     except Exception as e:
         log.error(f'Could not edit guest {e}')
         flash_plus('Kan gebruiker niet aanpassen', e)
@@ -113,41 +72,35 @@ def item_edit(ids=None):
 @supervisor_required
 def item_add():
     try:
-        return render_template('render_formio.html', data={"form": "add",
-                                                           "get_form_endpoint": "care.get_form",
-                                                           "buttons": ["save", "cancel", "clear"]})
+        data = app.application.student_care.prepare_add_form()
+        data.update(item_common)
+        data.update({"buttons": [("save", "Bewaar", "default"), ("cancel", "Annuleer", "warning"), ("clear-ack", "Velden wissen", "warning")]})
+        data['post_data_endpoint'] = 'api.care_add'
+        return render_template('formio.html', data=data)
     except Exception as e:
         log.error(f'Could not add care {e}')
         flash_plus(f'Kan care niet toevoegen: {e}')
     return redirect(url_for('care.show'))
 
 
-# # propagate changes in (some) properties to the table
-# def registration_update_cb(value, opaque):
-#     msocketio.broadcast_message({'type': 'celledit-care', 'data': {'reload-table': True}})
-#
-# mregistration.registration_subscribe_changed(registration_update_cb, None)
-
-# some columns can be edit inplace in the table.
-def celledit_event_cb(msg, client_sid=None):
+@care.route('/care/right_click/', methods=['POST', 'GET'])
+@login_required
+def right_click():
     try:
-        nbr = msg['data']['column']
-        column_template = table_configuration['template'][nbr]
-        if 'celltoggle' in column_template or 'celledit' in column_template:
-            mregistration.registration_update(msg['data']['id'], {column_template['data']: msg['data']['value']})
+        if 'jds' in request.values:
+            data = json.loads(request.values['jds'])
+            if 'item' in data:
+                if data['item'] == "delete":
+                    app.application.student_care.delete_students(data['item_ids'])
+                    return {"message": "Studenten zijn verwijderd, ververs het browserscherm"}
+                if data['item'] == "add":
+                    return {"redirect": {"url": f"/care/table_action/add"}}
+                if data['item'] == "edit":
+                    return {"redirect": {"url": f"/care/table_action/edit", "ids": data['item_ids']}}
     except Exception as e:
-        log.error(f'{sys._getframe().f_code.co_name}: {e}')
-    msocketio.send_to_room({'type': 'celledit-care', 'data': {'status': True}}, client_sid)
-
-msocketio.subscribe_on_type('celledit-care', celledit_event_cb)
-
-
-def get_misc_fields(extra_fields, form):
-    misc_field = {}
-    for field in extra_fields:
-        if field in form:
-            misc_field[field] = form[field]
-    return misc_field
+        log.error(f"Error in get_form: {e}")
+        return {"status": False, "data": f"get_form: {e}"}
+    return {"status": False, "data": "iets is fout gelopen"}
 
 
 def get_filters():
@@ -196,25 +149,22 @@ def get_pdf_template():
 table_configuration = {
     'view': 'care',
     'title': 'Zorg',
-    'buttons': ['edit', 'add', 'delete', 'pdf'],
-    'delete_message': 'Opgelet!!<br>'
-                      'Bent u zeker om deze care(en) te verwijderen?<br>'
-                      'Eens verwijderd kunnen ze niet meer worden terug gehaald.<br>',
     'get_filters': get_filters,
     'get_show_info': get_show_gauges,
     'get_pdf_template': get_pdf_template,
-    'item': {
-        'edit': {'title': 'Wijzig een care', 'buttons': ['save', 'cancel']},
-        'add': {'title': 'Voeg een care toe', 'buttons': ['save', 'cancel']},
-    },
     'href': [],
     'pre_filter': app.data.student_care.pre_filter,
     'format_data': app.application.student_care.format_data,
     'filter_data': app.data.student_care.filter_data,
     'search_data': app.data.student_care.search_data,
     'default_order': (1, 'asc'),
-    'socketio_endpoint': 'celledit-care',
-    # 'cell_color': {'supress_cell_content': True, 'color_keys': {'X': 'red', 'O': 'green'}}, #TEST
-    # 'suppress_dom': True,
+    'right_click': {
+        'endpoint': 'care.right_click',
+        'menu': [
+            {'label': 'Nieuwe student', 'item': 'add', 'iconscout': 'plus-circle'},
+            {'label': 'Student aanpassen', 'item': 'edit', 'iconscout': 'pen'},
+            {'label': 'Studenten(en) verwijderen', 'item': 'delete', 'iconscout': 'trash-alt', 'ack': 'Bent u zeker dat u deze student(en) wilt verwijderen?'},
+        ]
+    }
 
 }

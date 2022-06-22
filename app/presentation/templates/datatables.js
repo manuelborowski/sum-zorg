@@ -31,6 +31,13 @@ function is_at_least_one_checkbox_selected() {
     }
 }
 
+function get_id_of_checked_boxes() {
+    let ids = [];
+    const chbxs = document.querySelectorAll('.chbx_all:checked')
+    chbxs.forEach(chbx => {ids.push(chbx.value);});
+    return ids;
+}
+
 function button_pushed(action) {
     switch (action) {
         case 'delete':
@@ -38,9 +45,7 @@ function button_pushed(action) {
                 let message = table_config.delete_message;
                 bootbox.confirm(message, function (result) {
                     if (result) {
-                        let ids = []
-                        const chbxs = document.querySelectorAll('.chbx_all:checked')
-                        chbxs.forEach(chbx => {ids.push(chbx.value);});
+                        const ids = get_id_of_checked_boxes();
                         location.href = Flask.url_for(table_config.table_action, {action: 'delete', ids: JSON.stringify(ids)})
                     }
                 });
@@ -79,10 +84,7 @@ function button_pushed(action) {
 
 
 const get_form = async (endpoint, id) => {
-        const form_options = {
-        sanitizeConfig: {addTags: ['iframe'], addAttr: ['allow'], ALLOWED_TAGS: ['iframe'], ALLOWED_ATTR: ['allow']},
-        // noAlerts: true,
-    }
+    const form_options = {sanitizeConfig: {addTags: ['iframe'], addAttr: ['allow'], ALLOWED_TAGS: ['iframe'], ALLOWED_ATTR: ['allow']},/* noAlerts: true,*/}
     //Get form from server
     const ret = await fetch(Flask.url_for(endpoint, {form: "pdf", extra: id}))
     form_data = await ret.json();
@@ -112,7 +114,6 @@ function clear_filter_setting() {
 }
 
 $(document).ready(function () {
-
     //if a filter is changed, then the filter is applied by simulating a click on the filter button
     $(".table-filter").change(function () {
         store_filter_settings();
@@ -275,15 +276,6 @@ $(document).ready(function () {
                     }
                 });
             }
-            if (table_config.buttons.includes("edit")) {
-                //pencil is clicked
-                $(".pencil").click(function () {
-                    activity_id = $(this).attr("value");
-                    checkbox = $("input[name$='chbx'][value=" + activity_id + "]");
-                    checkbox.prop('checked', true);
-                    edit_item();
-                });
-            }
             cell_toggle.display();
 
             let json = api.ajax.json();
@@ -305,9 +297,9 @@ $(document).ready(function () {
     }
 
     if (current_user_is_at_least_admin) {
-        datatable_config["lengthMenu"] = [500, 1000];
+        datatable_config["lengthMenu"] = [50, 200, 500, 2000];
     } else {
-        datatable_config["lengthMenu"] = [200, 500];
+        datatable_config["lengthMenu"] = [50, 200, 500, 2000];
     }
 
     if ("default_order" in table_config) {

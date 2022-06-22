@@ -37,7 +37,7 @@ def show(table_configuration):
         config = tables.prepare_config_table_for_view(table_configuration)
     except Exception as e:
         flash_plus(f'Tabel kan niet getoond worden (show)', e)
-    return render_template('base_multiple_items.html', table_config=config, filters=filters, pdf_template=pdf_template, show_info=show_info)
+    return render_template('datatables.html', table_config=config, filters=filters, pdf_template=pdf_template, show_info=show_info)
 
 
 def format_datatable(table_configuration, data_list, total_count, filtered_count):

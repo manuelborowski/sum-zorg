@@ -1,10 +1,12 @@
+import datetime
+
 from flask import render_template, redirect, url_for, request
 from flask_login import login_required
 from app import log, admin_required, data, flask_app
 from . import user
 from app.application import user as muser
 from app.presentation.layout.utils import flash_plus
-from app.presentation.view import base_multiple_items
+from app.presentation.view import datatables
 import json
 
 @user.route('/user', methods=['GET', 'POST'])
@@ -12,8 +14,8 @@ import json
 @login_required
 def show():
     # start = datetime.datetime.now()
-    base_multiple_items.update(table_configuration)
-    ret = base_multiple_items.show(table_configuration)
+    datatables.update(table_configuration)
+    ret = datatables.show(table_configuration)
     # print('student.show', datetime.datetime.now() - start)
     return ret
 
@@ -22,8 +24,8 @@ def show():
 @login_required
 def table_ajax():
     # start = datetime.datetime.now()
-    base_multiple_items.update(table_configuration)
-    ret =  base_multiple_items.ajax(table_configuration)
+    datatables.update(table_configuration)
+    ret =  datatables.ajax(table_configuration)
     # print('student.table_ajax', datetime.datetime.now() - start)
     return ret
 
@@ -40,55 +42,23 @@ def table_action(action, ids=None):
         return item_edit(ids)
     if action == 'add':
         return item_add()
-    if action == 'delete':
-        return item_delete(ids)
     return redirect(url_for('user.show'))
 
 
-@user.route('/user/get_form', methods=['POST', 'GET'])
-@admin_required
-def get_form():
-    try:
-        common = {
-            'post_data_endpoint': 'api.user_update',
-            'submit_endpoint': 'user.show',
-            'cancel_endpoint': 'user.show',
-            'api_key': flask_app.config['API_KEY']
-        }
-        if request.values['form'] == 'edit':
-            data = muser.prepare_edit_registration_form(request.values['extra'])
-            data.update(common)
-        elif request.values['form'] == 'add':
-            data = muser.prepare_add_registration_form()
-            data.update(common)
-            data['post_data_endpoint'] = 'api.user_add'
-        else:
-            return {"status": False, "data": f"get_form: niet gekende form: {request.values['form']}"}
-        return {"status": True, "data": data}
-    except Exception as e:
-        log.error(f"Error in get_form: {e}")
-        return {"status": False, "data": f"get_form: {e}"}
+item_common = {'post_data_endpoint': 'api.user_update', 'submit_endpoint': 'user.show', 'cancel_endpoint': 'user.show', 'api_key': flask_app.config['API_KEY']}
 
 
 @admin_required
 def item_add():
     try:
-        return render_template('render_formio.html', data={"form": "add",
-                                                           "get_form_endpoint": "user.get_form"})
+        data = muser.prepare_add_registration_form()
+        data.update(item_common)
+        data.update({"buttons": [("save", "Bewaar", "default"), ("cancel", "Annuleer", "warning"), ("clear-ack", "Velden wissen", "warning")]})
+        data['post_data_endpoint'] = 'api.user_add'
+        return render_template('user/s_user.html', data=data)
     except Exception as e:
         log.error(f'Could not add user {e}')
         flash_plus(f'Kan gebruiker niet toevoegen: {e}')
-    return redirect(url_for('user.show'))
-
-
-@admin_required
-def item_delete(ids=None):
-    try:
-        if ids == None:
-            ids = request.form.getlist('chbx')
-        muser.delete_users(ids)
-    except Exception as e:
-        log.error(f'could not delete user {request.args}: {e}')
     return redirect(url_for('user.show'))
 
 
@@ -103,34 +73,51 @@ def item_edit(ids=None):
                 return redirect(url_for('user.show'))
         else:
             id = ids[0]
-        return render_template('render_formio.html', data={"form": "edit",
-                                                           "get_form_endpoint": "user.get_form",
-                                                            "extra": id})
+        data = muser.prepare_edit_registration_form(id)
+        data.update(item_common)
+        data.update({"buttons": [("save", "Bewaar", "default"), ("cancel", "Annuleer", "warning")]})
+        return render_template('user/s_user.html', data=data)
     except Exception as e:
         log.error(f'Could not edit user {e}')
         flash_plus('Kan gebruiker niet aanpassen', e)
     return redirect(url_for('user.show'))
 
 
+@user.route('/user/right_click/', methods=['POST', 'GET'])
+@admin_required
+def right_click():
+    try:
+        if 'jds' in request.values:
+            data = json.loads(request.values['jds'])
+            if 'item' in data:
+                if data['item'] == "delete":
+                    muser.delete_users(data['item_ids'])
+                    return {"message": "gebruikers zijn verwijderd, ververs het browserscherm"}
+                if data['item'] == "add":
+                    return {"redirect": {"url": f"/user/table_action/add"}}
+                if data['item'] == "edit":
+                    return {"redirect": {"url": f"/user/table_action/edit", "ids": data['item_ids']}}
+    except Exception as e:
+        log.error(f"Error in get_form: {e}")
+        return {"status": False, "data": f"get_form: {e}"}
+    return {"status": False, "data": "iets is fout gelopen"}
 
 
 table_configuration = {
     'view': 'user',
     'title': 'Gebruikers',
-    'buttons': ['delete', 'add', 'edit'],
-    'delete_message': u'Wilt u deze gebruiker(s) verwijderen?',
     'filter': [],
-    'item': {
-        'edit': {'title': 'Wijzig een gebruiker', 'buttons': ['save', 'cancel']},
-        'view': {'title': 'Bekijk een gebruiker', 'buttons': ['edit', 'cancel']},
-        'add': {'title': 'Voeg een gebruiker toe', 'buttons': ['save', 'cancel']},
-    },
     'href': [],
     'pre_filter': data.user.pre_filter,
     'format_data': data.user.format_data,
     'search_data': data.user.search_data,
     'default_order': (1, 'asc'),
-    # 'cell_color': {'supress_cell_content': True, 'color_keys': {'X': 'red', 'O': 'green'}}, #TEST
-    # 'suppress_dom': True,
-
+    'right_click': {
+        'endpoint': 'user.right_click',
+        'menu': [
+            {'label': 'Nieuwe gebruiker', 'item': 'add', 'iconscout': 'plus-circle'},
+            {'label': 'Gebruiker aanpassen', 'item': 'edit', 'iconscout': 'pen'},
+            {'label': 'Gebruiker(s) verwijderen', 'item': 'delete', 'iconscout': 'trash-alt', 'ack': 'Bent u zeker dat u deze gebruiker(s) wilt verwijderen?'},
+        ]
+    }
 }
