@@ -132,9 +132,65 @@ settings_formio = \
         ]
       },
       {
+        "label": "Class overview",
+        "tableView": false,
+        "key": "class_overview",
+        "type": "container",
+        "input": true,
+        "components": [
+          {
+            "title": "Klas overzicht",
+            "theme": "primary",
+            "collapsible": true,
+            "key": "class_overview",
+            "type": "panel",
+            "label": "BEZOEKERS : Registratie template en e-mail",
+            "collapsed": true,
+            "input": false,
+            "tableView": false,
+            "components": [
+              {
+                "label": "Opslaan",
+                "showValidations": false,
+                "theme": "warning",
+                "tableView": false,
+                "key": "submit",
+                "type": "button",
+                "input": true,
+                "saveOnEnter": false
+              },
+              {
+                "label": "Detail template (formio)",
+                "autoExpand": false,
+                "tableView": true,
+                "key": "class_overview-formio-template",
+                "type": "textarea",
+                "input": true
+              },
+              {
+                "label": "Lijst template (JSON)",
+                "autoExpand": false,
+                "tableView": true,
+                "key": "class_overview-datatables-template",
+                "type": "textarea",
+                "input": true
+              },
+              {
+                "label": "Pdf template (JS)",
+                "autoExpand": false,
+                "tableView": true,
+                "key": "class_overview-pdf-template",
+                "type": "textarea",
+                "input": true
+              }
+            ]
+          }
+        ]
+      },
+      {
         "label": "Student Care",
         "tableView": false,
-        "key": "visitors",
+        "key": "visitors2",
         "type": "container",
         "input": true,
         "components": [
@@ -238,6 +294,197 @@ settings_formio = \
                 "key": "intake-pdf-template",
                 "type": "textarea",
                 "input": true
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "label": "Cron",
+        "tableView": false,
+        "key": "cron",
+        "type": "container",
+        "input": true,
+        "components": [
+          {
+            "title": "Cron",
+            "theme": "primary",
+            "collapsible": true,
+            "key": "RegistratieTemplate3",
+            "type": "panel",
+            "label": "Smartschool",
+            "input": false,
+            "tableView": false,
+            "components": [
+              {
+                "label": "Opslaan ",
+                "showValidations": false,
+                "theme": "warning",
+                "tableView": false,
+                "key": "submit",
+                "type": "button",
+                "input": true
+              },
+              {
+                "label": "Cron template",
+                "labelPosition": "left-left",
+                "tooltip": "Check https://crontab.guru/ voor de layout van de cron template",
+                "tableView": true,
+                "persistent": false,
+                "key": "cron-scheduler-template",
+                "type": "textfield",
+                "labelWidth": 20,
+                "input": true
+              },
+              {
+                "label": "Columns",
+                "columns": [
+                  {
+                    "components": [
+                      {
+                        "label": "Start cron cyclus",
+                        "tableView": false,
+                        "defaultValue": false,
+                        "key": "check-start-cron-cycle",
+                        "type": "checkbox",
+                        "input": true
+                      }
+                    ],
+                    "width": 3,
+                    "offset": 0,
+                    "push": 0,
+                    "pull": 0,
+                    "size": "md",
+                    "currentWidth": 3
+                  },
+                  {
+                    "components": [
+                      {
+                        "label": "Start cron cyclus",
+                        "showValidations": false,
+                        "theme": "danger",
+                        "tableView": false,
+                        "key": "button-start-cron-cycle",
+                        "conditional": {
+                          "show": true,
+                          "when": "cron.check-start-cron-cycle",
+                          "eq": "true"
+                        },
+                        "type": "button",
+                        "saveOnEnter": false,
+                        "input": true
+                      }
+                    ],
+                    "width": 6,
+                    "offset": 0,
+                    "push": 0,
+                    "pull": 0,
+                    "size": "md",
+                    "currentWidth": 6
+                  }
+                ],
+                "key": "columns",
+                "type": "columns",
+                "input": false,
+                "tableView": false
+              },
+              {
+                "label": "(1) VAN SDH, koppel student, via rijksregisternummer, aan klas",
+                "tableView": false,
+                "defaultValue": false,
+                "key": "cron-enable-update-student-class",
+                "type": "checkbox",
+                "input": true
+              }
+            ],
+            "collapsed": true
+          }
+        ]
+      },
+      {
+        "label": "sdh",
+        "tableView": false,
+        "key": "sdh",
+        "type": "container",
+        "input": true,
+        "components": [
+          {
+            "title": "School Data Hub",
+            "theme": "primary",
+            "collapsible": true,
+            "key": "sdh",
+            "type": "panel",
+            "label": "Smartschool",
+            "collapsed": true,
+            "input": false,
+            "tableView": false,
+            "components": [
+              {
+                "label": "Opslaan ",
+                "showValidations": false,
+                "theme": "warning",
+                "tableView": false,
+                "key": "submit",
+                "type": "button",
+                "input": true
+              },
+              {
+                "label": "URL",
+                "tableView": true,
+                "persistent": false,
+                "key": "sdh-base-url",
+                "type": "textfield",
+                "labelWidth": 20,
+                "input": true
+              },
+              {
+                "label": "Columns",
+                "columns": [
+                  {
+                    "components": [
+                      {
+                        "label": "Toon sleutel",
+                        "tableView": false,
+                        "defaultValue": false,
+                        "key": "sdh-show-key",
+                        "type": "checkbox",
+                        "input": true
+                      }
+                    ],
+                    "width": 2,
+                    "offset": 0,
+                    "push": 0,
+                    "pull": 0,
+                    "size": "md",
+                    "currentWidth": 2
+                  },
+                  {
+                    "components": [
+                      {
+                        "label": "API sleutel",
+                        "tableView": true,
+                        "key": "sdh-api-key",
+                        "conditional": {
+                          "show": true,
+                          "when": "sdh.sdh-show-key",
+                          "eq": "true"
+                        },
+                        "type": "textfield",
+                        "input": true
+                      }
+                    ],
+                    "width": 5,
+                    "offset": 0,
+                    "push": 0,
+                    "pull": 0,
+                    "size": "md",
+                    "currentWidth": 5
+                  }
+                ],
+                "key": "columns",
+                "type": "columns",
+                "input": false,
+                "tableView": false
               }
             ]
           }

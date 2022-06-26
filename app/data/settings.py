@@ -65,10 +65,14 @@ def set_setting(name, value, id=-1):
                 value = 'True' if value else 'False'
             setting.value = value
             db.session.commit()
+            return True
+        else:
+            if name in default_configuration_settings:
+                add_setting(name, value, default_configuration_settings[name][2], id)
+                return True
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: could not set setting {name}: {e}')
-        return False
-    return True
+    return False
 
 
 def get_test_server():
@@ -84,13 +88,24 @@ default_configuration_settings = {
     'user-formio-template': ('', Settings.SETTING_TYPE.E_STRING),
     'user-datatables-template': ('{}', Settings.SETTING_TYPE.E_STRING),
 
+    'class_overview-formio-template': ('', Settings.SETTING_TYPE.E_STRING),
+    'class_overview-datatables-template': ('{}', Settings.SETTING_TYPE.E_STRING),
+    'class_overview-pdf-template': ('', Settings.SETTING_TYPE.E_STRING),
+
     'care-formio-template': ('', Settings.SETTING_TYPE.E_STRING),
     'care-datatables-template': ('{}', Settings.SETTING_TYPE.E_STRING),
     'care-pdf-template': ('', Settings.SETTING_TYPE.E_STRING),
 
     'intake-formio-template': ('', Settings.SETTING_TYPE.E_STRING),
     'intake-datatables-template': ('{}', Settings.SETTING_TYPE.E_STRING),
+    'intake-klassen': ('[]', Settings.SETTING_TYPE.E_STRING),
     'intake-pdf-template': ('', Settings.SETTING_TYPE.E_STRING),
+
+    'cron-scheduler-template': ('', Settings.SETTING_TYPE.E_STRING),
+    'cron-enable-update-student-class': ('', Settings.SETTING_TYPE.E_STRING),
+
+    'sdh-base-url': ('', Settings.SETTING_TYPE.E_STRING),
+    'sdh-api-key': ('', Settings.SETTING_TYPE.E_STRING),
 }
 
 

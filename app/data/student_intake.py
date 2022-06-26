@@ -167,7 +167,11 @@ class StudenIntake(db.Model, SerializerMixin):
         super.__setattr__(self, key, value)
 
 
-def add_student(data = {}):
+def commit():
+    db.session.commit()
+
+
+def add_student(data={}):
     try:
         student = StudenIntake()
         for k, v in data.items():
@@ -209,12 +213,16 @@ def delete_students(ids=None):
     return None
 
 
-def get_students(data={}, special={}, order_by=None, first=False, count=False):
+def get_students(data={}, order_by=None, first=False, count=False):
     try:
         q = StudenIntake.query
         for k, v in data.items():
-            if hasattr(StudenIntake, k):
-                q = q.filter(getattr(StudenIntake, k) == v)
+            if k[0] == '-':
+                if hasattr(StudenIntake, k[1:]):
+                    q = q.filter(getattr(StudenIntake, k[1:]) != v)
+            else:
+                if hasattr(StudenIntake, k):
+                    q = q.filter(getattr(StudenIntake, k) == v)
         if order_by:
             q = q.order_by(getattr(StudenIntake, order_by))
         if first:
@@ -290,12 +298,8 @@ def pre_filter():
 
 
 def filter_data(query, filter):
-    if filter and 'type' in filter[0] and filter[0]['type'] == 'checkbox':
-        for cb in filter[0]['value']:
-            query = query.filter(text(cb['id']), cb['checked'])
-    for f in filter:
-        if f['type'] == 'select' and f['value'] != 'none':
-            query = query.filter(getattr(StudenIntake, f['name']) == (f['value'] == 'True'))
+    if filter and filter[0]['name'] == 'klas' and filter[0]['value'] != 'all':
+        query = query.filter(StudenIntake.klas == filter[0]['value'])
     return query
 
 

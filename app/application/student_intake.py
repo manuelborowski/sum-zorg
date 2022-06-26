@@ -2,7 +2,7 @@ from app import log
 from app.data import student_intake as mstudent, settings as msettings
 import app.data.settings
 from app.application import formio as mformio
-import sys, datetime
+import sys, datetime, requests, json
 
 def add_student(data):
     try:
@@ -76,6 +76,38 @@ def format_data(db_list):
             'row_action': student.id,
             'DT_RowId': student.id
         })
+        if student.klas == '':
+            em.update({'overwrite_row_color': "rgb(232, 182, 120)"})
         out.append(em)
     return out
 
+
+################  Cron jobs ##################
+
+# get list of students from sdh
+# use rijksregisternummer as key to find a student
+# fill in the classnumber and wisa internal number
+def link_students_to_class_cron_task(opaque):
+    try:
+        if msettings.get_configuration_setting('cron-enable-update-student-class'):
+            klassen = set()
+            sdh_url = msettings.get_configuration_setting('sdh-base-url')
+            sdh_key = msettings.get_configuration_setting('sdh-api-key')
+            session = requests.Session()
+            res = session.get(f'{sdh_url}/students?fields=rijksregisternummer,klascode,leerlingnummer', headers={'x-api-key': sdh_key})
+            if res.status_code == 200:
+                sdh_students = res.json()
+                rijksregister_to_student = {s['rijksregisternummer']: s for s in sdh_students}
+                students = mstudent.get_students()
+                for student in students:
+                    rijksregisternummer =  student.s_rijksregister.replace('-', '').replace('.', '')
+                    if rijksregisternummer != "" and rijksregisternummer in rijksregister_to_student:
+                        student.klas = rijksregister_to_student[rijksregisternummer]['klascode']
+                        student.s_code = rijksregister_to_student[rijksregisternummer]['leerlingnummer']
+                        klassen.add(student.klas)
+                mstudent.commit()
+                msettings.set_configuration_setting('intake-klassen', json.dumps(list(klassen)))
+            else:
+                log.error(f'{sys._getframe().f_code.co_name}: api call returned {res.status_code}')
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')

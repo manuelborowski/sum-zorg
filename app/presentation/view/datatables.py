@@ -1,6 +1,6 @@
 from app.data import settings as msettings
 from app.presentation.layout.utils import flash_plus
-from app.application.multiple_items import prepare_data_for_ajax
+from app.application.datatables import prepare_data_for_ajax
 from app.application import tables
 from flask import render_template, request, get_flashed_messages, jsonify
 

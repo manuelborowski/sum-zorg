@@ -142,6 +142,7 @@ flask_app.config.from_pyfile('config.py')
 # V0.109: small bugfix
 # V0.110: introduced right-click floating menu (from school-data-hub)
 # V0.111: added propery klas to intake_student.  Reworked API key
+# V0.112: added class overview.  Added SDH api
 
 
 #TODO: add sequence numbers when on the waiting list.  Add them on the confirmation document?
@@ -160,7 +161,7 @@ flask_app.config.from_pyfile('config.py')
 
 @flask_app.context_processor
 def inject_defaults():
-    return dict(version='@ 2022 MB. V0.111', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
+    return dict(version='@ 2022 MB. V0.112', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
 
 
 #  enable logging
@@ -232,9 +233,9 @@ email = Mail(flask_app)
 send_emails = False
 
 SCHEDULER_API_ENABLED = True
-email_scheduler = APScheduler()
-email_scheduler.init_app(flask_app)
-email_scheduler.start()
+ap_scheduler = APScheduler()
+ap_scheduler.init_app(flask_app)
+ap_scheduler.start()
 
 if 'db' in sys.argv:
     from app.data import models
@@ -260,13 +261,14 @@ else:
             return func(*args, **kwargs)
         return decorated_view
 
-    from app.presentation.view import auth, user, settings,  api, warning, care, intake
+    from app.presentation.view import auth, user, settings,  api, warning, care, intake, class_overview
     flask_app.register_blueprint(api.api)
     flask_app.register_blueprint(auth.auth)
     flask_app.register_blueprint(user.user)
     flask_app.register_blueprint(settings.settings)
     flask_app.register_blueprint(care.care)
     flask_app.register_blueprint(intake.intake)
+    flask_app.register_blueprint(class_overview.class_overview)
     flask_app.register_blueprint(warning.warning)
 
     @flask_app.errorhandler(403)
