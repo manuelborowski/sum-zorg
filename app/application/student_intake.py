@@ -99,15 +99,24 @@ def link_students_to_class_cron_task(opaque):
             res = session.get(f'{sdh_url}/students?fields=rijksregisternummer,klascode,leerlingnummer', headers={'x-api-key': sdh_key})
             if res.status_code == 200:
                 sdh_students = res.json()
+                nbr_student_found = 0
+                nbr_student_not_found = 0
+                log.info(f'{sys._getframe().f_code.co_name}, retrieved {len(sdh_students)} students from SDH')
                 rijksregister_to_student = {s['rijksregisternummer']: s for s in sdh_students}
                 students = mstudent.get_students()
+                log.info(f'{sys._getframe().f_code.co_name}, {len(students)} students in database')
                 for student in students:
-                    rijksregisternummer =  student.s_rijksregister.replace('-', '').replace('.', '')
+                    rijksregisternummer = student.s_rijksregister.replace('-', '').replace('.', '')
                     if rijksregisternummer != "" and rijksregisternummer in rijksregister_to_student:
+                        nbr_student_found += 1
                         student.klas = rijksregister_to_student[rijksregisternummer]['klascode']
                         student.s_code = rijksregister_to_student[rijksregisternummer]['leerlingnummer']
+                    else:
+                        nbr_student_not_found += 1
                 mstudent.commit()
+                log.info(f'{sys._getframe().f_code.co_name}, students found {nbr_student_found}, students not found {nbr_student_not_found}')
             else:
                 log.error(f'{sys._getframe().f_code.co_name}: api call returned {res.status_code}')
+
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
