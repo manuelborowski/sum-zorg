@@ -7,6 +7,7 @@ from . import auth
 from .forms import LoginForm
 from app.data import user as muser
 from app.presentation.layout import utils
+from app.application import settings as msettings
 import datetime, json
 
 @auth.route('/', methods=['POST', 'GET'])
@@ -22,7 +23,7 @@ def login():
                 log.error('Could not save timestamp')
                 return redirect(url_for('auth.login'))
             # Ok, continue
-            return redirect(url_for('care.show'))
+            return redirect(url_for('class_overview.show'))
         else:
             utils.flash_plus(u'Ongeldige gebruikersnaam of paswoord')
             log.error(u'Invalid username/password')
@@ -63,10 +64,11 @@ def login_ss():
                 user.email = profile['email']
                 user = muser.update_user(user, profile)
             else:
+                default_level = msettings.get_configuration_setting('user-default-oath-level')
                 profile['first_name'] = profile['name']
                 profile['last_name'] = profile['surname']
                 profile['user_type'] = muser.User.USER_TYPE.OAUTH
-                profile['level'] = muser.User.LEVEL.SUPERVISOR
+                profile['level'] = default_level
                 user = muser.add_user(profile)
             login_user(user)
             log.info(u'OAUTH user {} logged in'.format(user.username))
@@ -74,7 +76,7 @@ def login_ss():
                 log.error('Could not save user')
                 return redirect(url_for('auth.login'))
             # Ok, continue
-            return redirect(url_for('care.show'))
+            return redirect(url_for('class_overview.show'))
     else:
         redirect_uri = f'{flask_app.config["SMARTSCHOOL_OUATH_REDIRECT_URI"]}/ss'
         return redirect(f'{flask_app.config["SMARTSCHOOL_OAUTH_SERVER"]}?app_uri={redirect_uri}')

@@ -126,6 +126,31 @@ settings_formio = \
                 "key": "user-datatables-template",
                 "type": "textarea",
                 "input": true
+              },
+              {
+                "label": "Standaard niveau nieuwe oauth gebruiker",
+                "labelPosition": "left-left",
+                "widget": "choicesjs",
+                "tableView": true,
+                "data": {
+                  "values": [
+                    {
+                      "label": "Gebruiker",
+                      "value": "1"
+                    },
+                    {
+                      "label": "Secretariaat",
+                      "value": "3"
+                    },
+                    {
+                      "label": "Administrator",
+                      "value": "5"
+                    }
+                  ]
+                },
+                "key": "user-default-oath-level",
+                "type": "select",
+                "input": true
               }
             ]
           }

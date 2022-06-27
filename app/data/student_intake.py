@@ -19,7 +19,7 @@ class StudenIntake(db.Model, SerializerMixin):
 
     date_format = '%d/%m/%Y'
     datetime_format = '%d/%m/%Y %H:%M'
-    serialize_rules = ('-school_lijst.student',)
+    serialize_rules = ('-school_lijst.student', 'arts_info', 'zwembrevet', 'ondersteuningsnetwerk')
 
     id = db.Column(db.Integer, primary_key=True)
     #student
@@ -156,6 +156,14 @@ class StudenIntake(db.Model, SerializerMixin):
     f_ouderleerlingen_geboortedatum = db.Column(db.Boolean, default=True)
     f_ouderleerlingen_email = db.Column(db.Boolean, default=True)
 
+    def arts_info(self):
+        return f'{self.g_huisarts_naam}, {self.g_huisarts_adres}, {self.g_huisarts_telefoon}'
+
+    def ondersteuningsnetwerk(self):
+        return 'X' if self.f_ondersteuningsnetwerk else '-'
+
+    def zwembrevet(self):
+        return 'X' if self.f_zwembrevet else '-'
 
     def __setattr__(self, key, value):
         if key == 'school_lijst':
@@ -290,6 +298,18 @@ def update_schools(student, schools):
             if old_school.jaar == new_school['jaar']:
                 update_school(old_school, new_school, False)
                 break
+
+
+def get_unique_klassen():
+    try:
+        q = db.session.query(StudenIntake.klas).order_by(StudenIntake.klas).distinct()
+        q = q.all()
+        out = [k[0] for k in q]
+        return out[1::] if out[0] == '' else out
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
+    return []
+
 
 
 ############ student overview list #########

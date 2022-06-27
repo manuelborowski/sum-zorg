@@ -39,6 +39,9 @@ def delete_students(ids):
     mstudent.delete_students(ids)
 
 
+def get_unique_klassen():
+    return mstudent.get_unique_klassen()
+
 ############## formio forms #############
 def prepare_add_form():
     try:
@@ -90,7 +93,6 @@ def format_data(db_list):
 def link_students_to_class_cron_task(opaque):
     try:
         if msettings.get_configuration_setting('cron-enable-update-student-class'):
-            klassen = set()
             sdh_url = msettings.get_configuration_setting('sdh-base-url')
             sdh_key = msettings.get_configuration_setting('sdh-api-key')
             session = requests.Session()
@@ -104,9 +106,7 @@ def link_students_to_class_cron_task(opaque):
                     if rijksregisternummer != "" and rijksregisternummer in rijksregister_to_student:
                         student.klas = rijksregister_to_student[rijksregisternummer]['klascode']
                         student.s_code = rijksregister_to_student[rijksregisternummer]['leerlingnummer']
-                        klassen.add(student.klas)
                 mstudent.commit()
-                msettings.set_configuration_setting('intake-klassen', json.dumps(list(klassen)))
             else:
                 log.error(f'{sys._getframe().f_code.co_name}: api call returned {res.status_code}')
     except Exception as e:

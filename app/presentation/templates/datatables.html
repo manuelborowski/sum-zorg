@@ -62,8 +62,6 @@
                             {% endfor %}
                             <button class="btn btn-danger" type="button" onclick="clear_filter_setting()">Reset</button>
                         </div>
-
-
                         <hr class="nice-green-line">
                     {% endif %}
                     <div class="column-visible-div flex-container">Kolom zichtbaar:&nbsp;</div>
@@ -125,14 +123,10 @@
     {{ super() }}
     {% if table_config %}
         <script>
-            var filters =
-            {{ (filters or []) | tojson }}
-            var pdf_template =
-            {{ (pdf_template or []) | tojson }}
-            var table_config =
-            {{ (table_config or []) | tojson }}
-            var config_columns =
-            {{ table_config.template | tojson }}
+            var filters = {{ (filters or []) | tojson }}
+            var pdf_template = {{ (pdf_template or []) | tojson }}
+            var table_config = {{ (table_config or []) | tojson }}
+            var config_columns = {{ table_config.template | tojson }}
             {% if 'cell_color' in table_config %}
                 var cell_to_color = {{ (table_config.cell_color.color_keys or null) | tojson}}
                 var suppress_cell_content = {{(table_config.cell_color.supress_cell_content or false) | tojson}}
@@ -144,6 +138,8 @@
             {{ current_user.is_at_least_admin | tojson }}
         </script>
         <script type="text/javascript"> {% include "datatables.js" %}</script>
-        <script type="text/javascript" src="{{ url_for('static', filename='js/right_click.js') }}"></script>
+        {% if table_config.right_click %}
+            <script type="text/javascript" src="{{ url_for('static', filename='js/right_click.js') }}"></script>
+        {% endif %}
     {% endif %}
 {% endblock %}

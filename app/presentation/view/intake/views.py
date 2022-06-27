@@ -11,7 +11,7 @@ import app.application
 
 
 @intake.route('/intake/intake', methods=['POST', 'GET'])
-@login_required
+@supervisor_required
 def show():
     # start = datetime.datetime.now()
     datatables.update(table_configuration)
@@ -21,7 +21,7 @@ def show():
 
 
 @intake.route('/intake/table_ajax', methods=['GET', 'POST'])
-@login_required
+@supervisor_required
 def table_ajax():
     # start = datetime.datetime.now()
     datatables.update(table_configuration)
@@ -33,8 +33,7 @@ def table_ajax():
 @intake.route('/intake/table_action', methods=['GET', 'POST'])
 @intake.route('/intake/table_action/<string:action>', methods=['GET', 'POST'])
 @intake.route('/intake/table_action/<string:action>/<string:ids>', methods=['GET', 'POST'])
-@login_required
-# @supervisor_required
+@supervisor_required
 def table_action(action, ids=None):
     if ids:
         ids = json.loads(ids)
@@ -95,7 +94,7 @@ def item_add():
 
 
 @intake.route('/intake/right_click/', methods=['POST', 'GET'])
-@login_required
+@supervisor_required
 def right_click():
     try:
         if 'jds' in request.values:

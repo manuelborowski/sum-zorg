@@ -87,6 +87,7 @@ default_configuration_settings = {
 
     'user-formio-template': ('', Settings.SETTING_TYPE.E_STRING),
     'user-datatables-template': ('{}', Settings.SETTING_TYPE.E_STRING),
+    'user-default-oath-level': (1, Settings.SETTING_TYPE.E_INT),
 
     'class_overview-formio-template': ('', Settings.SETTING_TYPE.E_STRING),
     'class_overview-datatables-template': ('{}', Settings.SETTING_TYPE.E_STRING),
@@ -98,7 +99,6 @@ default_configuration_settings = {
 
     'intake-formio-template': ('', Settings.SETTING_TYPE.E_STRING),
     'intake-datatables-template': ('{}', Settings.SETTING_TYPE.E_STRING),
-    'intake-klassen': ('[]', Settings.SETTING_TYPE.E_STRING),
     'intake-pdf-template': ('', Settings.SETTING_TYPE.E_STRING),
 
     'cron-scheduler-template': ('', Settings.SETTING_TYPE.E_STRING),

@@ -1,7 +1,7 @@
 from . import care
 from app import log, supervisor_required, flask_app
 from flask import redirect, url_for, request, render_template
-from flask_login import login_required, current_user
+from flask_login import login_required
 from app.presentation.view import datatables
 from app.presentation.layout.utils import flash_plus
 from app.application import socketio as msocketio, settings as msettings
@@ -11,7 +11,7 @@ import app.application
 
 
 @care.route('/care/care', methods=['POST', 'GET'])
-@login_required
+@supervisor_required
 def show():
     # start = datetime.datetime.now()
     datatables.update(table_configuration)
@@ -21,7 +21,7 @@ def show():
 
 
 @care.route('/care/table_ajax', methods=['GET', 'POST'])
-@login_required
+@supervisor_required
 def table_ajax():
     # start = datetime.datetime.now()
     datatables.update(table_configuration)
@@ -33,8 +33,7 @@ def table_ajax():
 @care.route('/care/table_action', methods=['GET', 'POST'])
 @care.route('/care/table_action/<string:action>', methods=['GET', 'POST'])
 @care.route('/care/table_action/<string:action>/<string:ids>', methods=['GET', 'POST'])
-@login_required
-# @supervisor_required
+@supervisor_required
 def table_action(action, ids=None):
     if ids:
         ids = json.loads(ids)
@@ -84,7 +83,7 @@ def item_add():
 
 
 @care.route('/care/right_click/', methods=['POST', 'GET'])
-@login_required
+@supervisor_required
 def right_click():
     try:
         if 'jds' in request.values:

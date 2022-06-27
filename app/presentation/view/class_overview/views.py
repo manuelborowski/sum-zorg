@@ -1,11 +1,9 @@
 from . import class_overview
-from app import log, supervisor_required, flask_app
-from flask import redirect, url_for, request, render_template
-from flask_login import login_required, current_user
+from flask import redirect, url_for
+from flask_login import login_required
 from app.presentation.view import datatables
-from app.presentation.layout.utils import flash_plus
-from app.application import socketio as msocketio, settings as msettings
-import sys, json
+from app.application import socketio as msocketio, student_intake as mstudent
+import datetime
 import app.data.class_overview
 import app.application.class_overview
 
@@ -34,13 +32,12 @@ def table_ajax():
 @class_overview.route('/class_overview/table_action/<string:action>', methods=['GET', 'POST'])
 @class_overview.route('/class_overview/table_action/<string:action>/<string:ids>', methods=['GET', 'POST'])
 @login_required
-# @supervisor_required
 def table_action(action, ids=None):
     return redirect(url_for('care.show'))
 
 
 def get_filters():
-    klassen = json.loads(msettings.get_configuration_setting('intake-klassen'))
+    klassen = mstudent.get_unique_klassen()
     choices = [['all', 'alle klassen'],['', 'zonder klas']]
     choices.extend([[k, k] for k in klassen])
     filters = [{
