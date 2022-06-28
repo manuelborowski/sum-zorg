@@ -133,6 +133,7 @@ table_configuration = {
     'get_show_info': get_show_gauges,
     'get_pdf_template': get_pdf_template,
     'href': [],
+    'legend': '<span style="background-color:rgb(232, 182, 120)">Geen klas</span>',
     'pre_filter': app.data.student_intake.pre_filter,
     'format_data': app.application.student_intake.format_data,
     'filter_data': app.data.student_intake.filter_data,

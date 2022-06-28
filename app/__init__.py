@@ -145,6 +145,7 @@ flask_app.config.from_pyfile('config.py')
 # V0.112: added class overview.  Added SDH api
 # V0.113: new oath user: select level.  Update klasoverzicht
 # V0.114: added logging to cron task
+# V0.115: intake: added legend
 
 #TODO: add sequence numbers when on the waiting list.  Add them on the confirmation document?
 #TODO: add statistic counters, e.g. number per field-of-study, ...
@@ -162,7 +163,7 @@ flask_app.config.from_pyfile('config.py')
 
 @flask_app.context_processor
 def inject_defaults():
-    return dict(version='@ 2022 MB. V0.114', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
+    return dict(version='@ 2022 MB. V0.115', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
 
 
 #  enable logging
