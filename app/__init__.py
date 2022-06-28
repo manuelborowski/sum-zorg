@@ -146,6 +146,8 @@ flask_app.config.from_pyfile('config.py')
 # V0.113: new oath user: select level.  Update klasoverzicht
 # V0.114: added logging to cron task
 # V0.115: intake: added legend
+# V0.116: commit: rollback in case of error
+
 
 #TODO: add sequence numbers when on the waiting list.  Add them on the confirmation document?
 #TODO: add statistic counters, e.g. number per field-of-study, ...
@@ -163,7 +165,7 @@ flask_app.config.from_pyfile('config.py')
 
 @flask_app.context_processor
 def inject_defaults():
-    return dict(version='@ 2022 MB. V0.115', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
+    return dict(version='@ 2022 MB. V0.116', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
 
 
 #  enable logging
@@ -215,12 +217,16 @@ socketio = SocketIO(flask_app, async_mode=flask_app.config['SOCKETIO_ASYNC_MODE'
 
 
 def create_admin():
-    from app.data.user import User
-    find_admin = User.query.filter(User.username == 'admin').first()
-    if not find_admin:
-        admin = User(username='admin', password='admin', level=User.LEVEL.ADMIN, user_type=User.USER_TYPE.LOCAL)
-        db.session.add(admin)
-        db.session.commit()
+    try:
+        from app.data.user import User
+        find_admin = User.query.filter(User.username == 'admin').first()
+        if not find_admin:
+            admin = User(username='admin', password='admin', level=User.LEVEL.ADMIN, user_type=User.USER_TYPE.LOCAL)
+            db.session.add(admin)
+            db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
 
 
 flask_app.url_map.converters['int'] = IntegerConverter

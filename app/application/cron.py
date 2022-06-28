@@ -43,6 +43,7 @@ def update_cron_template(setting, value, opaque):
         log.error(f'could not update cron-scheduler-template: {e}')
     return True
 
+
 def start_job():
     try:
         cron_template = msettings.get_configuration_setting('cron-scheduler-template')
