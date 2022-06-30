@@ -57,7 +57,7 @@ def get_show_gauges():
 
 table_configuration = {
     'view': 'class_overview',
-    'title': 'Klas overzicht',
+    'title': 'Klasoverzicht',
     'get_filters': get_filters,
     'get_show_info': get_show_gauges,
     'pre_filter': app.data.class_overview.pre_filter,
