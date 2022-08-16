@@ -148,6 +148,7 @@ flask_app.config.from_pyfile('config.py')
 # V0.115: intake: added legend
 # V0.116: commit: rollback in case of error
 # V0.117: small update
+# V0.118: update in sdh protocol
 
 
 #TODO: add sequence numbers when on the waiting list.  Add them on the confirmation document?
@@ -166,7 +167,7 @@ flask_app.config.from_pyfile('config.py')
 
 @flask_app.context_processor
 def inject_defaults():
-    return dict(version='@ 2022 MB. V0.117', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
+    return dict(version='@ 2022 MB. V0.118', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
 
 
 #  enable logging
