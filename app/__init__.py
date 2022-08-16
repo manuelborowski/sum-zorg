@@ -149,6 +149,7 @@ flask_app.config.from_pyfile('config.py')
 # V0.116: commit: rollback in case of error
 # V0.117: small update
 # V0.118: update in sdh protocol
+# V0.119: added help for klasoverzicht
 
 
 #TODO: add sequence numbers when on the waiting list.  Add them on the confirmation document?
@@ -167,7 +168,7 @@ flask_app.config.from_pyfile('config.py')
 
 @flask_app.context_processor
 def inject_defaults():
-    return dict(version='@ 2022 MB. V0.118', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
+    return dict(version='@ 2022 MB. V0.119', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
 
 
 #  enable logging
@@ -271,7 +272,7 @@ else:
             abort(403)
         return decorated_view
 
-    from app.presentation.view import auth, user, settings,  api, warning, care, intake, class_overview
+    from app.presentation.view import auth, user, settings,  api, warning, care, intake, class_overview, help
     flask_app.register_blueprint(api.api)
     flask_app.register_blueprint(auth.auth)
     flask_app.register_blueprint(user.user)
@@ -280,6 +281,7 @@ else:
     flask_app.register_blueprint(intake.intake)
     flask_app.register_blueprint(class_overview.class_overview)
     flask_app.register_blueprint(warning.warning)
+    flask_app.register_blueprint(help.help)
 
     @flask_app.errorhandler(403)
     def forbidden(error):

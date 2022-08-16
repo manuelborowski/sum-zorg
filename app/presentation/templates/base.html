@@ -66,6 +66,9 @@
                         <a class="nav-link" href="{{ url_for('settings.show') }}">Instellingen</a>
                     </li>
                 {% endif %}
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('help.help') }}">Help</a>
+                </li>
                 {% if table_config and table_config.buttons %}
                     <div class="nav-buttons">
                         {% if 'view' in table_config.buttons %}
