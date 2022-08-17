@@ -96,27 +96,35 @@ def link_students_to_class_cron_task(opaque):
             sdh_url = msettings.get_configuration_setting('sdh-base-url')
             sdh_key = msettings.get_configuration_setting('sdh-api-key')
             session = requests.Session()
-            res = session.get(f'{sdh_url}/students?fields=rijksregisternummer,klascode,leerlingnummer', headers={'x-api-key': sdh_key})
+            res = session.get(f'{sdh_url}/students?fields=rijksregisternummer,klascode,leerlingnummer,naam,voornaam', headers={'x-api-key': sdh_key})
             if res.status_code == 200:
                 sdh_students = res.json()
-                nbr_student_found = 0
+                nbr_student_matching_rijkregister_found = 0
+                nbr_student_matching_naam_found = 0
                 nbr_student_not_found = 0
                 if sdh_students['status']:
                     log.info(f'{sys._getframe().f_code.co_name}, retrieved {len(sdh_students["data"])} students from SDH')
                     rijksregister_to_student = {s['rijksregisternummer']: s for s in sdh_students["data"]}
+                    naam_to_student = {s['naam'] + s['voornaam']: s for s in sdh_students["data"]}
                     students = mstudent.get_students()
                     log.info(f'{sys._getframe().f_code.co_name}, {len(students)} students in database')
-
                     for student in students:
+                        name = student.s_last_name + student.s_first_name
                         rijksregisternummer = student.s_rijksregister.replace('-', '').replace('.', '')
                         if rijksregisternummer != "" and rijksregisternummer in rijksregister_to_student:
-                            nbr_student_found += 1
+                            nbr_student_matching_rijkregister_found += 1
                             student.klas = rijksregister_to_student[rijksregisternummer]['klascode']
                             student.s_code = rijksregister_to_student[rijksregisternummer]['leerlingnummer']
+                        elif name in naam_to_student:
+                            nbr_student_matching_naam_found += 1
+                            student.klas = naam_to_student[name]['klascode']
+                            student.s_code = naam_to_student[name]['leerlingnummer']
                         else:
                             nbr_student_not_found += 1
                     mstudent.commit()
-                    log.info(f'{sys._getframe().f_code.co_name}, students found {nbr_student_found}, students not found {nbr_student_not_found}')
+                    log.info(f'{sys._getframe().f_code.co_name}, students, matching rijksregisternummer, found {nbr_student_matching_rijkregister_found}')
+                    log.info(f'{sys._getframe().f_code.co_name}, students, matching naam, found {nbr_student_matching_naam_found}')
+                    log.info(f'{sys._getframe().f_code.co_name}, students not found {nbr_student_not_found}')
                 else:
                     log.error(f'{sys._getframe().f_code.co_name}: sdh returned {sdh_students["data"]}')
 
