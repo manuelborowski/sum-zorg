@@ -151,6 +151,7 @@ flask_app.config.from_pyfile('config.py')
 # V0.118: update in sdh protocol
 # V0.119: added help for klasoverzicht
 # V0.120: try to match students by name-firstname as well
+# V0.121: update requirements.text
 
 
 #TODO: add sequence numbers when on the waiting list.  Add them on the confirmation document?
@@ -169,7 +170,7 @@ flask_app.config.from_pyfile('config.py')
 
 @flask_app.context_processor
 def inject_defaults():
-    return dict(version='@ 2022 MB. V0.120', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
+    return dict(version='@ 2022 MB. V0.121', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
 
 
 #  enable logging
