@@ -96,7 +96,7 @@ def link_students_to_class_cron_task(opaque):
             sdh_url = msettings.get_configuration_setting('sdh-base-url')
             sdh_key = msettings.get_configuration_setting('sdh-api-key')
             session = requests.Session()
-            res = session.get(f'{sdh_url}/students?fields=rijksregisternummer,klascode,leerlingnummer,naam,voornaam', headers={'x-api-key': sdh_key})
+            res = session.get(sdh_url, headers={'x-api-key': sdh_key})
             if res.status_code == 200:
                 sdh_students = res.json()
                 nbr_student_matching_rijkregister_found = 0
