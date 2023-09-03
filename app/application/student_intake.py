@@ -206,11 +206,11 @@ def link_students_to_class_cron_task(opaque):
                 if sdh_students['status']:
                     log.info(f'{sys._getframe().f_code.co_name}, retrieved {len(sdh_students["data"])} students from SDH')
                     rijksregister_to_student = {s['rijksregisternummer']: s for s in sdh_students["data"]}
-                    naam_to_student = {s['naam'] + s['voornaam']: s for s in sdh_students["data"]}
+                    naam_to_student = {(s['naam'] + s['voornaam']).upper(): s for s in sdh_students["data"]}
                     students = mstudent.get_students()
                     log.info(f'{sys._getframe().f_code.co_name}, {len(students)} students in database')
                     for student in students:
-                        name = student.s_last_name + student.s_first_name
+                        name = (student.s_last_name + student.s_first_name).upper()
                         rijksregisternummer = student.s_rijksregister.replace('-', '').replace('.', '')
                         if rijksregisternummer != "" and rijksregisternummer in rijksregister_to_student:
                             nbr_student_matching_rijkregister_found += 1
@@ -220,6 +220,7 @@ def link_students_to_class_cron_task(opaque):
                             nbr_student_matching_naam_found += 1
                             student.klas = naam_to_student[name]['klascode']
                             student.s_code = naam_to_student[name]['leerlingnummer']
+                            student.s_rijksregister = rijksregisternummer
                         else:
                             nbr_student_not_found += 1
                     mstudent.commit()
