@@ -3,6 +3,16 @@
     <div class="content-section">
         <div class="center">
             <div class="container-form">
+                <form method="post" enctype=multipart/form-data>
+                <input class="btn btn-default" type="button" id="import" value="Import"
+                       onclick="$('#controlcard_fileid').click();">
+                <input id='controlcard_fileid' type='file' name='student_info_file' style="display:none" accept=".xlsx"
+                       onchange="$('#controlcard_trigger').click();">
+                <input id="controlcard_trigger" type="submit" formaction="{{ url_for('settings.upload_student_info') }}"
+                       style="display:none">
+                Upload leerlingen (xlsx).
+                </form>
+                <br>
                 <div id="configuration-settings"></div>
             </div>
         </div>

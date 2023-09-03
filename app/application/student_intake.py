@@ -1,8 +1,109 @@
 from app import log
-from app.data import student_intake as mstudent, settings as msettings
+from app.data import student_intake as mstudent, settings as msettings, utils as mutils
 import app.data.settings
 from app.application import formio as mformio
 import sys, datetime, requests, json
+from openpyxl import load_workbook
+from io import BytesIO
+
+
+toolbox2db_keys = {
+    "personalia_rijksregisternummer": "s_rijksregister",
+    "personalia_achternaam": "s_last_name",
+    "personalia_voornaam": "s_first_name",
+    "personalia_roepnaam": "s_roepnaam",
+    "personalia_geboorteplaats": "s_geboorteplaats",
+    "personalia_geboorteland": "s_geboorteland",
+    "personalia_nationaliteit": "s_nationaliteit",
+    "personalia_geslacht": "s_sex",
+    "personalia_geboortedatum": "s_date_of_birth",
+    "Taalachtergrond_Thuistaal Nederland": "g_spreektaal_Nederland",
+    "Taalachtergrond_Andere talen": "g_spreektaal_Ander",
+    "Taalachtergrond_Andere thuistaal": "g_spreektaal_Thuistaal",
+    "Taalachtergrond_Nederlandstalig oudercontact": "g_spreektaal_Oudercontact",
+    "Gezinssituatie_Aantal kinderen": "g_aantal_kinderen",
+    "SCHOOLLOOPBAAN_Naam (basis)school": "school_naam",
+    "SCHOOLLOOPBAAN_Type BLO": "school_blo_type",
+    "SCHOOLLOOPBAAN_Gemeente (basis)school": "school_adres",
+    "SCHOOLLOOPBAAN_(Voorlopig) advies basisschool": "school_voorlopig_advies",
+    "SCHOOLLOOPBAAN_Extra informatie": "school_extra_info",
+    "SCHOOLLOOPBAAN_CLIL": "clil_keuze",
+    "Speciale zorg_Zorgattest beschikbaar": "f_zorgattest_beschikbaar",
+    "Speciale zorg_Intakegesprek": "f_intakegesprek_gewenst",
+    "Speciale zorg_Bijkomende opmerkingen": "extra_begeleiding_welke",
+    "Speciale zorg_Begeleiding": "extra_begeleiding_door_wie",
+    "Speciale zorg_Ondersteuningsnetwerk": "f_ondersteuningsnetwerk",
+    "Speciale zorg_Specifieke onderwijsbehoefte(n)": "specifieke_onderwijsbehoeften",
+    "Speciale zorg_Verhoogde zorg": "andere_schoolproblemen",
+    "Speciale zorg_Gezondheidsproblemen": "g_problemen",
+    "Speciale zorg_Medicatie": "g_medicatie",
+    "Speciale zorg_Naam huisarts": "g_huisarts_naam",
+    "Speciale zorg_Gemeente huisarts": "g_huisarts_adres",
+    "Betalingen_e-mailadres": "betaling_email",
+    "Betalingen_Betalingen": "betaling_wijze",
+    "Betalingen_IBAN": "domiciliering_iban",
+    "Betalingen_BIC": "domiciliering_bic",
+    "Betalingen_Rekeninghouder": "domiciliering_rekeninghouder",
+}
+
+TOPIC_IN_ROW = 1
+HEADER_IN_ROW = 2
+
+def XLSXDictReader(f):
+    book = load_workbook(f)
+    sheet = book.active
+    rows = sheet.max_row
+    cols = sheet.max_column
+    headers = dict((i, sheet.cell(row=HEADER_IN_ROW, column=i).value) for i in range(1, cols))
+    topics = [""]
+    if TOPIC_IN_ROW > -1:
+        topic = ""
+        for i in range(1, cols + 1):
+            value = sheet.cell(row=TOPIC_IN_ROW, column=i).value
+            if value and value != topic:
+                topic = value
+            topics.append(topic + "_")
+    else:
+        topics = ["" for i in range(1, cols + 1)]
+
+    def item(i, j):
+        value = sheet.cell(row=i, column=j).value
+        header = sheet.cell(row=HEADER_IN_ROW, column=j).value
+        header = topics[j] + header if header else None
+        if isinstance(value, str):
+            value = value.strip()
+        if not header :
+            return ("", value)
+        if header in toolbox2db_keys:
+            return (toolbox2db_keys[header], value)
+        else:
+            return (header, value)
+
+    return (dict(item(i, j) for j in range(1, cols + 1)) for i in range(HEADER_IN_ROW + 1, rows + 1))
+
+
+def import_student_info(file_storeage):
+    try:
+        now = datetime.datetime.now()
+        db_students = mstudent.get_students({"enabled": True})
+        db_students_cache = {s.s_last_name+s.s_first_name+str(s.s_date_of_birth): s for s in db_students }
+        toolbox_students = XLSXDictReader(BytesIO(file_storeage.read()))
+        for tb_student in toolbox_students:
+            tb_student["g_spreektaal"] = tb_student["g_spreektaal_Ander"] if tb_student["g_spreektaal_Ander"] != "/" else "NL"
+            tb_student["i_intake_date"] = now.strftime('%d/%m/%Y %H:%M')
+            tb_student["i_last_name"] = "import"
+            tb_key = tb_student["s_last_name"] + tb_student["s_first_name"] + str(mformio.datestring_to_date(tb_student['s_date_of_birth']))
+            if tb_key in db_students_cache:
+                db_student = db_students_cache[tb_key]
+                tb_student["id"] = db_student.id
+                update_student(tb_student)
+            else:
+                add_student(tb_student)
+    except Exception as e:
+        mutils.raise_error(f'{sys._getframe().f_code.co_name}:', e)
+    return None
+
+
 
 def add_student(data):
     try:
@@ -88,7 +189,7 @@ def format_data(db_list):
 ################  Cron jobs ##################
 
 # get list of students from sdh
-# use rijksregisternummer as key to find a student
+# use rijksregisternummer OR naam+voornaam as key to find a student
 # fill in the classnumber and wisa internal number
 def link_students_to_class_cron_task(opaque):
     try:

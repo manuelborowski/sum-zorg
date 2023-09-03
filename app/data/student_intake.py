@@ -64,6 +64,8 @@ class StudenIntake(db.Model, SerializerMixin):
     school_extra_info = db.Column(db.String(256), default='')
 
     #aandachtspunten voor de school
+    f_zorgattest_beschikbaar = db.Column(db.Boolean, default=False)
+    f_intakegesprek_gewenst = db.Column(db.Boolean, default=False)
     f_contact = db.Column(db.Boolean, default=False)
     extra_begeleiding = db.Column(db.Text, default='')
     f_extra_begeleiding = db.Column(db.Boolean, default=False)

@@ -1,11 +1,13 @@
-from flask import render_template
+from flask import render_template, request, redirect, url_for
 from flask_login import login_required
 
 from app import admin_required
-from app.application import socketio as msocketio, event as mevent
+from app.application import socketio as msocketio, event as mevent, student_intake as mstudent_intake
 from . import settings
 from app.application import settings as msettings
 import json
+from app.presentation.layout.utils import flash_plus, button_pressed
+
 
 @settings.route('/settings', methods=['GET', 'POST'])
 @admin_required
@@ -17,6 +19,19 @@ def show():
         'template': settings_formio,
     }
     return render_template('/settings/settings.html', data=data)
+
+
+@settings.route('/settings/upload_student_info', methods=['GET', 'POST'])
+@admin_required
+@login_required
+def upload_student_info():
+    try:
+        if request.files['student_info_file']:
+            mstudent_intake.import_student_info(request.files['student_info_file'])
+        flash_plus('Guest info file is imported')
+        return redirect(url_for('settings.show'))
+    except Exception as e:
+        flash_plus('Could not import guest file', e)
 
 
 def update_settings_cb(msg, client_sid=None):
