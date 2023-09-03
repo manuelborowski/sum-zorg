@@ -158,6 +158,8 @@ class StudenIntake(db.Model, SerializerMixin):
     f_ouderleerlingen_geboortedatum = db.Column(db.Boolean, default=True)
     f_ouderleerlingen_email = db.Column(db.Boolean, default=True)
 
+    active = db.Column(db.Boolean, default=True)
+
     def arts_info(self):
         return f'{self.g_huisarts_naam}, {self.g_huisarts_adres}, {self.g_huisarts_telefoon}'
 
@@ -227,7 +229,7 @@ def delete_students(ids=None):
     return None
 
 
-def get_students(data={}, order_by=None, first=False, count=False):
+def get_students(data={}, order_by=None, first=False, count=False, active=True):
     try:
         q = StudenIntake.query
         for k, v in data.items():
@@ -237,6 +239,8 @@ def get_students(data={}, order_by=None, first=False, count=False):
             else:
                 if hasattr(StudenIntake, k):
                     q = q.filter(getattr(StudenIntake, k) == v)
+        if active != None:
+            q = q.filter(StudenIntake.active == active)
         if order_by:
             q = q.order_by(getattr(StudenIntake, order_by))
         if first:
@@ -320,7 +324,7 @@ def get_unique_klassen():
 
 ############ student overview list #########
 def pre_filter():
-    return db.session.query(StudenIntake)
+    return db.session.query(StudenIntake).filter(StudenIntake.active == True)
 
 
 def filter_data(query, filter):

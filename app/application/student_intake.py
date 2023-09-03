@@ -203,30 +203,37 @@ def link_students_to_class_cron_task(opaque):
                 nbr_student_matching_rijkregister_found = 0
                 nbr_student_matching_naam_found = 0
                 nbr_student_not_found = 0
+                nbr_student_deactivated = 0
                 if sdh_students['status']:
                     log.info(f'{sys._getframe().f_code.co_name}, retrieved {len(sdh_students["data"])} students from SDH')
                     rijksregister_to_student = {s['rijksregisternummer']: s for s in sdh_students["data"]}
                     naam_to_student = {(s['naam'] + s['voornaam']).upper(): s for s in sdh_students["data"]}
-                    students = mstudent.get_students()
-                    log.info(f'{sys._getframe().f_code.co_name}, {len(students)} students in database')
-                    for student in students:
-                        name = (student.s_last_name + student.s_first_name).upper()
-                        rijksregisternummer = student.s_rijksregister.replace('-', '').replace('.', '')
+                    db_students = mstudent.get_students()
+                    log.info(f'{sys._getframe().f_code.co_name}, {len(db_students)} students in database')
+                    for db_student in db_students:
+                        name = (db_student.s_last_name + db_student.s_first_name).upper()
+                        rijksregisternummer = db_student.s_rijksregister.replace('-', '').replace('.', '')
                         if rijksregisternummer != "" and rijksregisternummer in rijksregister_to_student:
                             nbr_student_matching_rijkregister_found += 1
-                            student.klas = rijksregister_to_student[rijksregisternummer]['klascode']
-                            student.s_code = rijksregister_to_student[rijksregisternummer]['leerlingnummer']
+                            db_student.klas = rijksregister_to_student[rijksregisternummer]['klascode']
+                            db_student.s_code = rijksregister_to_student[rijksregisternummer]['leerlingnummer']
                         elif name in naam_to_student:
                             nbr_student_matching_naam_found += 1
-                            student.klas = naam_to_student[name]['klascode']
-                            student.s_code = naam_to_student[name]['leerlingnummer']
-                            student.s_rijksregister = rijksregisternummer
+                            db_student.klas = naam_to_student[name]['klascode']
+                            db_student.s_code = naam_to_student[name]['leerlingnummer']
+                            db_student.s_rijksregister = rijksregisternummer
+                        elif db_student.s_code != "":
+                            # student not found in SDH, i.e. left the school.  Deactivate...
+                            db_student.active = False
+                            nbr_student_deactivated += 1
+                            log.info(f'{sys._getframe().f_code.co_name}, student {db_student.s_code}, {db_student.s_last_name} {db_student.s_first_name} not found in SDH')
                         else:
                             nbr_student_not_found += 1
                     mstudent.commit()
                     log.info(f'{sys._getframe().f_code.co_name}, students, matching rijksregisternummer, found {nbr_student_matching_rijkregister_found}')
                     log.info(f'{sys._getframe().f_code.co_name}, students, matching naam, found {nbr_student_matching_naam_found}')
                     log.info(f'{sys._getframe().f_code.co_name}, students not found {nbr_student_not_found}')
+                    log.info(f'{sys._getframe().f_code.co_name}, students deactivated {nbr_student_deactivated}')
                 else:
                     log.error(f'{sys._getframe().f_code.co_name}: sdh returned {sdh_students["data"]}')
 
