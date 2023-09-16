@@ -156,6 +156,7 @@ flask_app.config.from_pyfile('config.py')
 # 0.123: added import from toolbox
 # 0.124: import: improved name-key
 # 0.125: deactivate students that left the school
+# 0.126: do not show deactivated students in class overview
 
 
 #TODO: add sequence numbers when on the waiting list.  Add them on the confirmation document?
@@ -174,7 +175,7 @@ flask_app.config.from_pyfile('config.py')
 
 @flask_app.context_processor
 def inject_defaults():
-    return dict(version='@ 2022 MB. V0.125', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
+    return dict(version='@ 2022 MB. V0.126', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
 
 
 #  enable logging

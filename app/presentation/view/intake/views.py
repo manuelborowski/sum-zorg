@@ -4,7 +4,7 @@ from flask import redirect, url_for, request, render_template
 from flask_login import login_required, current_user
 from app.presentation.view import datatables
 from app.presentation.layout.utils import flash_plus
-from app.application import socketio as msocketio, settings as msettings
+from app.application import socketio as msocketio, settings as msettings, student_intake as mstudent
 import sys, json
 import app.data
 import app.application
@@ -114,7 +114,31 @@ def right_click():
 
 
 def get_filters():
-    filters = []
+    klassen = mstudent.get_unique_klassen()
+    choices = [['all', 'alle klassen'],['', 'zonder klas']]
+    choices.extend([[k, k] for k in klassen])
+    klasgroepen = mstudent.get_unique_klasgroepen()
+    klasgroep_choices = [[json.dumps(k), g] for g, k in klasgroepen.items()]
+    klasgroep_choices = sorted(klasgroep_choices, key=lambda x: x[1])
+    klasgroep_choices = [['all', 'alle klassen'],['', 'zonder klas']] + klasgroep_choices
+    filters = [
+        # {
+        #     'type': 'select',
+        #     'name': 'klas',
+        #     'label': 'Selecteer klas',
+        #     'choices': choices,
+        #     'default': 'none',
+        #     'tt': 'Selecteer een klas'
+        # },
+        {
+            'type': 'select',
+            'name': 'klasgroep',
+            'label': 'Selecteer klas',
+            'choices': klasgroep_choices,
+            'default': 'none',
+            'tt': 'Selecteer een klas'
+        },
+    ]
     return filters
 
 

@@ -7,7 +7,7 @@ from app.data.student_intake import StudenIntake
 
 ############ student overview list #########
 def pre_filter():
-    return db.session.query(StudenIntake)
+    return db.session.query(StudenIntake).filter(StudenIntake.active == True)
 
 
 def filter_data(query, filter):

@@ -143,6 +143,9 @@ def delete_students(ids):
 def get_unique_klassen():
     return mstudent.get_unique_klassen()
 
+def get_unique_klasgroepen():
+    return mstudent.get_unique_klasgroepen()
+
 ############## formio forms #############
 def prepare_add_form():
     try:

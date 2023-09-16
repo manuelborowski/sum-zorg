@@ -3,7 +3,7 @@ from flask import redirect, url_for
 from flask_login import login_required
 from app.presentation.view import datatables
 from app.application import socketio as msocketio, student_intake as mstudent
-import datetime
+import datetime, json
 import app.data.class_overview
 import app.application.class_overview
 
@@ -40,14 +40,28 @@ def get_filters():
     klassen = mstudent.get_unique_klassen()
     choices = [['all', 'alle klassen'],['', 'zonder klas']]
     choices.extend([[k, k] for k in klassen])
-    filters = [{
+    klasgroepen = mstudent.get_unique_klasgroepen()
+    klasgroep_choices = [[json.dumps(k), g] for g, k in klasgroepen.items()]
+    klasgroep_choices = sorted(klasgroep_choices, key=lambda x: x[1])
+    klasgroep_choices = [['all', 'alle klassen'],['', 'zonder klas']] + klasgroep_choices
+    filters = [
+        # {
+        #     'type': 'select',
+        #     'name': 'klas',
+        #     'label': 'Selecteer klas',
+        #     'choices': choices,
+        #     'default': 'none',
+        #     'tt': 'Selecteer een klas'
+        # },
+        {
             'type': 'select',
-            'name': 'klas',
+            'name': 'klasgroep',
             'label': 'Selecteer klas',
-            'choices': choices,
+            'choices': klasgroep_choices,
             'default': 'none',
             'tt': 'Selecteer een klas'
-    }]
+        },
+    ]
     return filters
 
 

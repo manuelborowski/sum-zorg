@@ -1,4 +1,4 @@
-import sys
+import sys, json
 from app import log, db
 from sqlalchemy import text
 from sqlalchemy_serializer import SerializerMixin
@@ -321,6 +321,24 @@ def get_unique_klassen():
     return []
 
 
+def get_unique_klasgroepen():
+    try:
+        q = db.session.query(StudenIntake.klas).order_by(StudenIntake.klas).distinct()
+        q = q.all()
+        out = [k[0] for k in q]
+        out = out[1::] if out[0] == '' else out
+        klasgroepen = {}
+        for k in out:
+            if k[:2] in klasgroepen:
+                klasgroepen[k[:2]].append(k)
+            else:
+                klasgroepen[k[:2]] = [k]
+        return klasgroepen
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
+    return []
+
+
 
 ############ student overview list #########
 def pre_filter():
@@ -328,8 +346,11 @@ def pre_filter():
 
 
 def filter_data(query, filter):
-    if filter and filter[0]['name'] == 'klas' and filter[0]['value'] != 'all':
-        query = query.filter(StudenIntake.klas == filter[0]['value'])
+    for f in filter:
+        if f['name'] == 'klas' and f['value'] != 'all':
+            query = query.filter(StudenIntake.klas == f['value'])
+        if f['name'] == 'klasgroep' and f['value'] != 'all':
+            query = query.filter(StudenIntake.klas.in_(json.loads(f['value'])))
     return query
 
 
